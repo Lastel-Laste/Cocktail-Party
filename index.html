@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>칵테일 파티 보드</title>
+  <style>
+    body {
+      background-color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    .board {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transform: scale(0.9);
+    }
+    .row {
+      display: flex;
+      gap: 4px;
+    }
+    .slot {
+      width: 85px;
+      height: 105px;
+      background-color: rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 5px;
+      position: relative;
+    }
+    .slot.highlight {
+      background-color: rgba(0, 255, 0, 0.3);
+    }
+    .slot.occupied {
+      pointer-events: none;
+    }
+    .cocktail {
+      width: 85px;
+      height: 105px;
+      cursor: grab;
+    }
+    .cocktail-pool {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="board" id="board"></div>
+  <div class="cocktail-pool" id="cocktail-pool"></div>
+
+  <script>
+    const board = document.getElementById("board");
+    const cocktailPool = document.getElementById("cocktail-pool");
+    
+    // rows 배열에 각 행의 요소를 저장 (인덱스: data-row 값)
+    const rows = [];
+    
+    // 덱: blue 8개, red/green/yellow 7개, pink 7개 추가됨.
+    let deck = [];
+    const poolSize = 10; // 칵테일 바에 보일 칵테일 수
+    let cocktailQueue = [];
+    
+    let draggedCocktail = null;
+    let dropSuccessful = false;
+    
+    // 덱 초기화 후 섞기
+    function initDeck() {
+      deck = [];
+      deck.push(...Array(8).fill("blue"));
+      deck.push(...Array(7).fill("red"));
+      deck.push(...Array(7).fill("green"));
+      deck.push(...Array(7).fill("yellow"));
+      deck.push(...Array(7).fill("pink"));  // pink 7개 추가
+      deck.sort(() => Math.random() - 0.5);
+    }
+    
+    // 보드 생성: for문을 i=8부터 -1까지, 각 행에 (8-i)개의 슬롯을 추가  
+    // (row 0: 바닥, 슬롯 8개)
+    function createBoard() {
+      for (let i = 8; i > -1; i--) {
+        let row = document.createElement("div");
+        row.classList.add("row");
+        for (let j = 0; j < 8 - i; j++) {
+          let slot = document.createElement("div");
+          slot.classList.add("slot");
+          slot.dataset.empty = "true";
+          slot.dataset.row = i;
+          slot.dataset.col = j;
+          row.appendChild(slot);
+        }
+        board.appendChild(row);
+        rows[i] = row;
+      }
+    }
+    
+    // 칵테일 풀 생성: 덱에서 poolSize 개수 만큼 뽑아서 추가
+    function createCocktailPool() {
+      cocktailQueue = [];
+      for (let i = 0; i < poolSize; i++) {
+        if (deck.length > 0) {
+          addNewCocktail(deck.shift());
+        }
+      }
+    }
+    
+    // 지정된 타입의 칵테일을 생성하여 풀에 추가
+    function addNewCocktail(cocktailType) {
+      let cocktail = document.createElement("img");
+      cocktail.src = `./images/${cocktailType}.png`;
+      cocktail.classList.add("cocktail");
+      cocktail.draggable = true;
+      cocktail.dataset.type = cocktailType;
+    
+      cocktail.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", cocktailType);
+        e.target.classList.add("dragging");
+        draggedCocktail = cocktail;
+        dropSuccessful = false;
+        // 원래 부모와 인덱스 기록
+        cocktail.originalParent = cocktail.parentElement;
+        cocktail.originalIndex = Array.from(cocktail.parentElement.children).indexOf(cocktail);
+        // 현재 칵테일 색상에 맞는 배치 가능 구역 하이라이트
+        highlightValidSlots(cocktailType);
+        setTimeout(() => {
+          cocktail.style.visibility = "hidden";
+        }, 0);
+      });
+    
+      cocktail.addEventListener("dragend", (e) => {
+        e.target.classList.remove("dragging");
+        clearHighlights();
+        if (!dropSuccessful) {
+          e.target.style.visibility = "visible";
+        }
+      });
+    
+      cocktailQueue.push(cocktail);
+      cocktailPool.appendChild(cocktail);
+    }
+    
+    // 칵테일 풀 재정렬: 사용된 칵테일 제거 후 덱에서 채움
+    function refreshCocktailPool() {
+      cocktailQueue = cocktailQueue.filter(c => c.parentElement === cocktailPool);
+      cocktailPool.innerHTML = "";
+      cocktailQueue.forEach(c => cocktailPool.appendChild(c));
+      while (cocktailQueue.length < poolSize && deck.length > 0) {
+        addNewCocktail(deck.shift());
+      }
+    }
+    
+    document.addEventListener("dragover", (e) => {
+      e.preventDefault();
+    });
+    
+    document.addEventListener("drop", (e) => {
+      e.preventDefault();
+      clearHighlights();
+      let slot = e.target;
+      if (!slot.classList.contains("slot")) {
+        slot = slot.closest(".slot");
+      }
+      if (slot && slot.classList.contains("slot") && slot.dataset.empty === "true") {
+        let cocktailType = e.dataTransfer.getData("text/plain");
+        if (isValidPlacement(slot, cocktailType)) {
+          // 배치가 유효하면 원래 칵테일 풀(또는 덱에서 나온 부분)에서 제거
+          if (draggedCocktail && draggedCocktail.originalParent.contains(draggedCocktail)) {
+            draggedCocktail.originalParent.removeChild(draggedCocktail);
+            cocktailQueue = cocktailQueue.filter(c => c !== draggedCocktail);
+          }
+          slot.appendChild(draggedCocktail);
+          draggedCocktail.draggable = false;  // 배치 후 드래그 불가
+          draggedCocktail.style.visibility = "visible";
+          slot.dataset.empty = "false";
+          slot.classList.add("occupied");
+          dropSuccessful = true;
+          refreshCocktailPool();
+          draggedCocktail = null;
+        }
+      }
+    });
+    
+    // 배치 가능 구역 하이라이트: 현재 드래그하는 칵테일의 색상을 기준으로 검사
+    function highlightValidSlots(cocktailType) {
+      const slots = board.querySelectorAll(".slot");
+      slots.forEach(slot => {
+        if (slot.dataset.empty === "true" && isValidPlacement(slot, cocktailType)) {
+          slot.classList.add("highlight");
+        } else {
+          slot.classList.remove("highlight");
+        }
+      });
+    }
+    
+    function clearHighlights() {
+      const slots = board.querySelectorAll(".slot");
+      slots.forEach(slot => slot.classList.remove("highlight"));
+    }
+    
+    /* 
+      배치 가능 조건:
+      1. 바닥(층 0): 무조건 배치 가능.
+      2. 그 외의 슬롯: 슬롯 바로 아래의 두 칸(왼쪽, 오른쪽)이 모두 채워져 있어야 하며,
+         이 중 적어도 하나의 칸에 있는 칵테일 색상이 배치하려는 칵테일과 동일해야 함.
+    */
+    function isValidPlacement(slot, cocktailType) {
+      let rowNumber = parseInt(slot.dataset.row);
+      let col = parseInt(slot.dataset.col);
+      if (rowNumber === 0) return true;
+      
+      // 아래(지원) 층은 rowNumber - 1
+      let supportRow = rows[rowNumber - 1];
+      if (!supportRow) return false;
+      
+      let leftSlot = supportRow.children[col];
+      let rightSlot = supportRow.children[col + 1];
+      
+      // 양쪽 지원 슬롯 모두 존재하고 채워져 있어야 함.
+      if (!leftSlot || leftSlot.dataset.empty === "true" || 
+          !rightSlot || rightSlot.dataset.empty === "true") {
+        return false;
+      }
+      
+      let leftType = leftSlot.firstChild ? leftSlot.firstChild.dataset.type : null;
+      let rightType = rightSlot.firstChild ? rightSlot.firstChild.dataset.type : null;
+      
+      // 지원 슬롯 중 하나라도 색상이 일치하면 배치 가능.
+      return (leftType === cocktailType || rightType === cocktailType);
+    }
+    
+    // 초기화: 덱 생성 → 보드 생성 → 칵테일 풀 구성
+    initDeck();
+    createBoard();
+    createCocktailPool();
+  </script>
+</body>
+</html>
