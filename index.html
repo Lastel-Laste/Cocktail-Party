@@ -117,7 +117,7 @@
     // rows 배열: 각 행 요소를 저장 (인덱스는 data-row 값)
     const rows = [];
     
-    // 덱: blue 8개, red/green/yellow 7개, pink 7개
+    // 덱: blue 7장, red/green/yellow/pink 7장씩, king 1장
     let deck = [];
     const poolSize = 10; // 칵테일 풀에 보일 칵테일 수
     let cocktailQueue = [];
@@ -128,11 +128,12 @@
     // 덱 초기화 후 섞기
     function initDeck() {
       deck = [];
-      deck.push(...Array(8).fill("blue"));
+      deck.push(...Array(7).fill("blue"));   // blue 7장
       deck.push(...Array(7).fill("red"));
       deck.push(...Array(7).fill("green"));
       deck.push(...Array(7).fill("yellow"));
-      deck.push(...Array(7).fill("pink")); // pink 7개 추가
+      deck.push(...Array(7).fill("pink"));
+      deck.push("king");                     // king 1장 추가
       deck.sort(() => Math.random() - 0.5);
     }
     
@@ -306,8 +307,11 @@
     /* 
       배치 가능 조건:
       1. 바닥(층 0): 무조건 배치 가능.
-      2. 그 외의 슬롯: 슬롯 바로 아래의 두 칸(왼쪽, 오른쪽)이 모두 채워져 있어야 하며,
-         이 중 적어도 하나의 칸에 있는 칵테일 색상이 배치하려는 칵테일과 동일해야 함.
+      2. 그 외의 슬롯: 
+         - 슬롯 바로 아래의 두 칸(왼쪽, 오른쪽)이 모두 채워져 있어야 함.
+         - 만약 지원 슬롯 중 하나라도 king이면, 그 위에는 어떤 칵테일도 배치할 수 없음.
+         - 배치하려는 칵테일이 king인 경우, 색상 비교 없이 배치 가능.
+         - 그 외의 칵테일은 아래 슬롯 중 적어도 하나의 색상이 일치해야 함.
     */
     function isValidPlacement(slot, cocktailType) {
       let rowNumber = parseInt(slot.dataset.row);
@@ -328,7 +332,18 @@
       let leftType = leftSlot.firstChild ? leftSlot.firstChild.dataset.type : null;
       let rightType = rightSlot.firstChild ? rightSlot.firstChild.dataset.type : null;
       
-      return (leftType === cocktailType || rightType === cocktailType);
+      // king 위에는 어떤 칵테일도 배치할 수 없음.
+      if (leftType === "king" || rightType === "king") {
+        return false;
+      }
+      
+      if (cocktailType === "king") {
+        // king은 지원 슬롯의 색상과 무관하게 배치 가능.
+        return true;
+      } else {
+        // 그 외 칵테일은 지원 슬롯 중 하나라도 같은 색이어야 함.
+        return (leftType === cocktailType || rightType === cocktailType);
+      }
     }
     
     // 초기화: 덱 생성 → 보드 생성 → 칵테일 풀 구성
