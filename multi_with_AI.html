@@ -97,22 +97,27 @@
       justify-content: center;
       gap: 10px;
     }
+    #player-ai1, #player-ai2 {
+      position: relative;  /* 상대 위치 지정 */
+      transform: translateY(-500px); /* 위로 이동 */
+    }
     /* 추가: 플레이어 영역 스타일 */
     #players-container {
       display: flex;
-      gap: 20px;
+      gap: 100px;
       margin-top: 20px;
     }
     .player {
       text-align: center;
     }
+    /* active-player에 border 대신 box-shadow 사용 */
     .active-player {
-      border: 2px solid #ffd700;
       padding: 5px;
       border-radius: 5px;
+      box-shadow: 0 0 10px 2px #ffd700; /* box-shadow로 테두리 효과 */
     }
     #turn-indicator {
-      margin-top: 20px;
+      margin-top: -50px;
       font-size: 1.2em;
     }
   </style>
@@ -124,16 +129,16 @@
   <div id="turn-indicator">현재 턴: Human</div>
   
   <div id="players-container">
-    <div class="player active-player" id="player-human">
-      <h2>Human</h2>
-      <div class="cocktail-container">
-        <div class="cocktail-pool" id="cocktail-pool-human"></div>
-      </div>
-    </div>
     <div class="player" id="player-ai1">
       <h2>AI 1</h2>
       <div class="cocktail-container">
         <div class="cocktail-pool" id="cocktail-pool-ai1"></div>
+      </div>
+    </div>
+    <div class="player active-player" id="player-human">
+      <h2>Human</h2>
+      <div class="cocktail-container">
+        <div class="cocktail-pool" id="cocktail-pool-human"></div>
       </div>
     </div>
     <div class="player" id="player-ai2">
@@ -429,7 +434,23 @@
       return false;
     }
     
-    // 턴 전환 및 시작
+    // 드래그 이벤트 비활성화 함수
+    function disableDragForHuman() {
+      const humanCocktails = document.querySelectorAll("#cocktail-pool-human .cocktail");
+      humanCocktails.forEach(cocktail => {
+        cocktail.draggable = false; // human의 드래그 이벤트 비활성화
+      });
+    }
+
+    // 드래그 이벤트 활성화 함수
+    function enableDragForHuman() {
+      const humanCocktails = document.querySelectorAll("#cocktail-pool-human .cocktail");
+      humanCocktails.forEach(cocktail => {
+        cocktail.draggable = true; // human의 드래그 이벤트 활성화
+      });
+    }
+
+    // 턴 시작 함수 수정
     function startTurn() {
       const currentPlayer = players[currentPlayerIndex];
       // UI 업데이트: active player 강조 및 턴 표시
@@ -447,12 +468,15 @@
         consecutivePasses = 0;
       }
       
+      // AI 턴이면 human의 드래그 비활성화
       if (currentPlayer.type === "ai") {
         setTimeout(() => {
           aiTurn(currentPlayer);
         }, 1000);
+        disableDragForHuman(); // AI 턴일 때 human의 드래그 비활성화
+      } else {
+        enableDragForHuman(); // human 턴일 때 드래그 이벤트 활성화
       }
-      // human은 드래그 앤 드롭을 통해 행동하므로 별도 처리 없음
     }
     
     function nextTurn() {
