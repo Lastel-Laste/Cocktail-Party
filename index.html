@@ -52,7 +52,7 @@
     .score-wrapper {
       position: absolute;
       top: 40%;
-      left: 100%;
+      left: 70%;
       margin-left: 70px;
       display: flex;
       flex-direction: column;
@@ -74,9 +74,55 @@
       margin-top: 20px;
     }
     .board-container {
-      position: relative;
-      display: inline-block;
-    }
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 50px;
+    position: relative;
+  }
+
+  .board-wrapper {
+    flex-shrink: 0;
+  }
+
+  .rule-board {
+    position: absolute;
+    left: -200px;
+    top: 20%;
+    width: 600px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+  }
+
+  .rule-board h2 {
+    font-family: 'Cinzel', serif;
+    font-size: 2.5em;
+    color: #FFFFFF;
+    text-shadow: 0 0 1px #ffd700, 0 0 2px #ffd700, 0 0 4px #ffd700, 0 0 6px #ffd700;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+  }
+
+  .rule-board p {
+    font-size: 1.4em;
+    line-height: 1.4;
+    text-align: center;
+    margin: 0;
+  }
+
+  .cocktail-example {
+    width: 85px;
+    height: 105px;
+    display: block;
+    margin: 15px auto 0 auto;
+    pointer-events: none;
+    user-select: none;
+  }
     .board {
       display: flex;
       flex-direction: column;
@@ -190,18 +236,37 @@
   <audio id="bgm" src="./audio/Color_Scammer.mp3" loop></audio>
   <h1 class="title">Cocktail Party</h1>
   <div class="game-wrapper">
-    <div class="board-container">
-      <div class="board" id="board"></div>
-      <!-- 라운드 인디케이터와 스코어 보드를 감싸는 컨테이너 -->
-      <div class="score-wrapper">
-        <div id="round-indicator" class="round-indicator">Round 1</div>
-        <div id="score-board">
-          <h3>Score Board</h3>
-          <ul id="score-list"></ul>
-        </div>
-      </div>
+<div class="board-container">
+  <div class="rule-board">
+    <h2 class="rule-title">How to Play</h2>
+    <div class="rule-content">
+      <p style="text-align:left; line-height: 1.7;">
+        피라미드의 1층부터 칵테일을 차곡차곡 쌓아 올립니다.<br>
+        칵테일을 쌓을 때는 밑의 2잔 중 하나와 같아야 합니다.<br>
+        더 이상 쌓을 수 없으면, 남은 잔만큼 감점을 받습니다.<br>
+        3라운드 후, 감점이 가장 적은 사람이 승리!<br>
+        <br>
+        위대한 마티니는 어느 칵테일이든 밟고 오를 수 있습니다.<br>
+        그 어떤 칵테일도 감히 마티니를 밟고 오를 수 없습니다.<br>
+        <br>
+        가장 높은 점수를 얻어 파티의 주인이 되어보세요!
+      </p>
+      <img src="./images/king.png" class="cocktail-example">
     </div>
   </div>
+
+  <div class="board-wrapper">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="score-wrapper">
+    <div id="round-indicator" class="round-indicator">Round 1</div>
+    <div id="score-board">
+      <h3>Score Board</h3>
+      <ul id="score-list"></ul>
+    </div>
+  </div>
+</div>
   
   <div id="turn-indicator">현재 턴: You</div>
   
