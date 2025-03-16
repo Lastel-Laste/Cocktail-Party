@@ -2,7 +2,7 @@
     // BGM 자동 재생 및 볼륨 조절
     document.addEventListener('click', function startBGM() {
       const bgm = document.getElementById('bgm');
-      bgm.volume = 0.3;
+      bgm.volume = 1;
       if (bgm.paused) {
         bgm.play().catch(err => console.log("BGM play error: ", err));
       }
