@@ -384,17 +384,22 @@
       let seRoundEnd = new Audio('./audio/roundend.mp3');
       seRoundEnd.volume = 1.0;
       seRoundEnd.play().catch(err => console.log("Round end sound error:", err));
-      
+  
+      // 각 플레이어의 점수에서 남은 칵테일 개수를 차감
       players.forEach(player => {
         player.score -= player.pool.length;
       });
+  
+      // 점수판 업데이트는 별도의 정렬된 복사본을 사용하여 진행
       updateScoreBoard();
-      
-      players.sort((a, b) => b.score - a.score);
-      
+  
+      // 원래의 players 배열은 그대로 유지하여, human이 항상 인덱스 0에 남음
+  
       if (currentRound >= totalRounds) {
         setTimeout(() => {
-          const winnerName = (players[0].id.toLowerCase() === "human") ? "YOU" : players[0].id.toUpperCase();
+          // 게임 종료 시, 우승자 판별을 위해 임시 정렬된 복사본을 사용
+          const sortedPlayers = players.slice().sort((a, b) => b.score - a.score);
+          const winnerName = (sortedPlayers[0].id.toLowerCase() === "human") ? "YOU" : sortedPlayers[0].id.toUpperCase();
           alert("게임 종료! 1등 플레이어: " + winnerName);
         }, 500);
       } else {
@@ -403,8 +408,8 @@
           startRound();
         }, 1500);
       }
-    }
-    
+    }    
+
     function initGame() {
       updateScoreBoard();
       startRound();
