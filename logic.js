@@ -271,7 +271,7 @@
       players.forEach(p => p.container.classList.remove("active-player"));
       currentPlayer.container.classList.add("active-player");
       const displayName = (currentPlayer.id.toLowerCase() === "human") ? "You" : currentPlayer.id.toUpperCase();
-      turnIndicator.textContent = `라운드 ${currentRound} - 현재 턴: ${displayName}`;
+      turnIndicator.textContent = `현재 턴: ${displayName}`;
       
       if (currentPlayer.type === "ai") {
         setTimeout(() => {
@@ -355,10 +355,17 @@
       });
     }
     
+    // 라운드 표시 업데이트 함수
+    function updateRoundIndicator() {
+      const roundIndicator = document.getElementById('round-indicator');
+      roundIndicator.textContent = `Round ${currentRound}`;
+    }
+
     function startRound() {
       clearBoard();
       initGlobalDeck();
-      
+      updateRoundIndicator();
+
       players.forEach(player => {
         player.pool = [];
         player.poolElement.innerHTML = "";
@@ -376,7 +383,8 @@
         seRoundStart.play().catch(err => console.log("Round start sound error:", err));
       }
       const displayName = (players[currentPlayerIndex].id.toLowerCase() === "human") ? "You" : players[currentPlayerIndex].id.toUpperCase();
-      turnIndicator.textContent = `라운드 ${currentRound} - 현재 턴: ${displayName}`;
+      turnIndicator.textContent = `현재 턴: ${displayName}`;
+      updateRoundIndicator();  // 여기서 라운드 표시 업데이트
       startTurn();
     }
     
