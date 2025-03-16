@@ -10,32 +10,69 @@
     body {
       margin: 0;
       padding: 0;
-      background: linear-gradient(135deg, #0d082a, #340a56, #463f69);
+      /* 기본 배경색과 두 개의 도트 패턴을 생성 */
+      background-color: #0d082a;
+      background-image: 
+        radial-gradient(circle, #340a56 15%, transparent 16%),
+        radial-gradient(circle, #463f69 15%, transparent 16%);
+      background-size: 30px 30px;
+      background-position: 0 0, 15px 15px;
+      animation: moveBackground 60s linear infinite;
+      
       font-family: 'Montserrat', sans-serif;
       color: #fff;
       height: 100vh;
       overflow: hidden;
       transform: scale(0.5);
       transform-origin: top center;
-      /* 중앙 정렬 추가 */
       display: flex;
       flex-direction: column;
       align-items: center;
     }
+
+    @keyframes moveBackground {
+      from {
+        background-position: 0 0, 15px 15px;
+      }
+      to {
+        background-position: -100% -100%, calc(15px - 100%) calc(15px - 100%);
+      }
+    }
+
     .title {
       font-family: 'Cinzel', serif;
       font-size: 3em;
       margin-bottom: 20px;
       color: #FFFFFF;
       text-shadow: 0 0 1px #ffd700, 0 0 2px #ffd700, 0 0 4px #ffd700, 0 0 6px #ffd700;
-      text-align: center; /* 제목 중앙 정렬 */
+      text-align: center;
     }
-    /* 게임판과 점수판을 감싸는 외부 컨테이너 */
+
+    /* 스코어 보드와 라운드 인디케이터를 감싸는 컨테이너 */
+    .score-wrapper {
+      position: absolute;
+      top: 40%;
+      left: 100%;
+      margin-left: 70px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* 라운드 인디케이터 스타일 (제목과 동일한 디자인) */
+    .round-indicator {
+      font-family: 'Cinzel', serif;
+      font-size: 2.5em;
+      color: #FFFFFF;
+      text-shadow: 0 0 1px #ffd700, 0 0 2px #ffd700, 0 0 4px #ffd700, 0 0 6px #ffd700;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
     .game-wrapper {
       text-align: center;
       margin-top: 20px;
     }
-    /* 피라미드와 점수판을 함께 감싸는 컨테이너 */
     .board-container {
       position: relative;
       display: inline-block;
@@ -54,13 +91,13 @@
     .slot {
       width: 85px;
       height: 105px;
-      background-color: rgba(255, 255, 255, 0.15);
+      background-color: rgba(255, 255, 255, 0.3);
       display: flex;
       justify-content: center;
       align-items: center;
       border-radius: 5px;
       position: relative;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.7);
       transition: background-color 0.3s ease;
     }
     .slot.highlight {
@@ -100,12 +137,11 @@
       justify-content: center;
       gap: 10px;
     }
-    /* 플레이어 영역 스타일 중앙 정렬 */
     #players-container {
       display: flex;
       gap: 20px;
       margin-top: 10px;
-      justify-content: center; /* 중앙 정렬 */
+      justify-content: center;
     }
     .player {
       text-align: center;
@@ -116,47 +152,37 @@
       border-radius: 5px;
       box-shadow: 0 0 10px 2px #ffd700;
     }
-    /* 턴 인디케이터 중앙 정렬 */
+    /* 턴 인디케이터에서 라운드 정보 제거 */
     #turn-indicator {
       margin-top: -50px;
       font-size: 1.2em;
       text-align: center;
     }
-    /* 점수판 스타일 */
+    /* 스코어 보드 스타일 */
     #score-board {
-      position: absolute;
-      top: 50%;
-      left: 100%;
-      margin-left: 70px;
-      padding: 20px 70px; /* 수직 패딩과 수평 패딩을 늘림 */
-      border-radius: 15px; /* 모서리를 더욱 둥글게 */
-      background: linear-gradient(135deg, rgba(0,0,0,0.65), rgba(30,30,30,0.65)); /* 부드러운 그라데이션 배경 */
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8); /* 깊이감 있는 그림자 추가 */
-      backdrop-filter: blur(4px); /* 배경 블러 효과 (지원 브라우저에서만 적용) */
+      padding: 20px 70px;
+      border-radius: 15px;
+      background: linear-gradient(135deg, rgba(0,0,0,0.65), rgba(30,30,30,0.65));
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(4px);
     }
-
-    /* 스코어보드 제목 스타일 */
     #score-board h3 {
       white-space: nowrap;
       margin: 0 0 10px 0;
       font-family: 'Cinzel', serif;
       font-size: 2em;
       text-align: center;
-      color: #ffd700; /* 금색 텍스트로 포인트 */
+      color: #ffd700;
     }
-
-    /* 스코어 리스트 스타일 */
     #score-board ul {
       list-style: none;
       margin: 0;
       padding: 0;
     }
-
     #score-board li {
       font-family: monospace;
       margin-bottom: 5px;
       font-size: 2em;
-      /* 필요에 따라 색상이나 다른 효과 추가 가능 */
     }
   </style>
 </head>
@@ -166,15 +192,18 @@
   <div class="game-wrapper">
     <div class="board-container">
       <div class="board" id="board"></div>
-      <div id="score-board">
-        <h3>Score Board</h3>
-        <ul id="score-list"></ul>
+      <!-- 라운드 인디케이터와 스코어 보드를 감싸는 컨테이너 -->
+      <div class="score-wrapper">
+        <div id="round-indicator" class="round-indicator">Round 1</div>
+        <div id="score-board">
+          <h3>Score Board</h3>
+          <ul id="score-list"></ul>
+        </div>
       </div>
     </div>
   </div>
   
-  <!-- 초기 턴 인디케이터 -->
-  <div id="turn-indicator">라운드 1 - 현재 턴: You</div>
+  <div id="turn-indicator">현재 턴: You</div>
   
   <div id="players-container">
     <div class="player" id="player-ai1">
@@ -197,6 +226,6 @@
     </div>
   </div>
   
-  <script type="text/javascript" src="logic.js"> </script>
+  <script type="text/javascript" src="logic.js"></script>
 </body>
 </html>
